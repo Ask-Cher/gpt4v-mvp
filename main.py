@@ -12,7 +12,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 print(OPENAI_API_KEY)
 
-client = OpenAI()
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 def get_image_url(image_path):
     # Prepend ./ to the image name
@@ -76,26 +76,23 @@ if uploaded_file is not None:
     image_url = get_image_url(image_path)  # Get the URL of the uploaded image
     # Getting the base64 string
     base64_image = encode_image(image_url)
+    refined_prompt = """You are an expert educator, and are responsible for answering the user's questions.
+            Your answer should be concise and understood by a primary school child and adhere to the Singapore's Primary School Science Syllabus.
+            Think step by step and answer from first principles.
+            For example, high-level concepts such as "air is an insulator" can be better explained as "air is a poor conductor of heat" to better explain it to a child.
+
+            If they ask questions not related to the question, \
+            you should politely decline to answer and remind them to stay on topic.
+
+            Here's the question:
+            """
 
     # refine the question with an additional layer of prompt to be syllabus specific
     question = st.text_input("Enter your question:")
     if st.button('Answer Question'):
         if question:
-            refined_prompt = "Answer from first principles. Your answer should be concise and understood by a primary school child and adhere to the Singapore's Primary School Science Syllabus."
-            refined_question = question + refined_prompt
+            refined_question = refined_prompt + question
             answer = ask_openai(base64_image, refined_question)
             st.write(answer)
         else:
             st.write("Please enter a question.")
-
-    # Additional chat should utilise a cheaper model without having to call the image; perhaps should describe the image first and store the description as a memory
-
-    # # Additional chat functionality
-    # st.header("Further Questions")
-    # further_question = st.text_input("Ask more about this image:")
-    # if st.button('Submit Question'):
-    #     if further_question:
-    #         additional_answer = ask_openai(image_url, further_question)
-    #         st.write(additional_answer)
-    #     else:
-    #         st.write("Please enter a further question.")
